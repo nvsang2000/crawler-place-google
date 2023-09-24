@@ -7,6 +7,8 @@ COPY package*.json ./
 # Install app dependencies
 RUN npm install
 
+# COPY
+COPY . .
 # Creates a "dist" folder with the production build
 RUN npm run build
 RUN npm run postinstall
@@ -15,6 +17,5 @@ RUN npm run postinstall
 COPY . .
 # define port
 EXPOSE 80/tcp
-
 # Start the server using the production build
 CMD [ "node", "dist/src/main" ]
