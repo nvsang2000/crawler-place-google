@@ -1,6 +1,8 @@
 # Dockerfile
 FROM node:16
 
+RUN mkdir /app
+WORKDIR /app
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
@@ -13,8 +15,6 @@ COPY . .
 RUN npm run build
 RUN npm run postinstall
 
-# COPY
-COPY . .
 # define port
 EXPOSE 80/tcp
 # Start the server using the production build
