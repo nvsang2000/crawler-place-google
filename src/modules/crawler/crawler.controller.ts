@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleService } from './service/google.service';
 import { CreateScapDataDto } from './dto/create-scrap-data.dto';
@@ -12,8 +12,13 @@ import { CreateScapDataDto } from './dto/create-scrap-data.dto';
 export class CrawlerController {
   constructor(private googleService: GoogleService) {}
 
+  @Get('login-google')
+  loginGoogle() {
+    return this.googleService.loginGoogle();
+  }
+
   @Get()
-  createCrawler(@Param() payload: CreateScapDataDto) {
+  createCrawler(@Query() payload: CreateScapDataDto) {
     return this.googleService.searchPlaceseGoogle(payload);
   }
 }

@@ -16,14 +16,10 @@ import {
   OPTION_GO_TO_PAGE,
   WEBSITE,
 } from 'src/constants';
-import {
-  formatPhoneNumber,
-  parseUSAddress,
-  parseWebsite,
-  setDelay,
-} from 'src/helper';
+import { formatPhoneNumber, parseWebsite, setDelay } from 'src/helper';
 import { ConfigService } from '@nestjs/config';
 import { BrowserService } from './browser.service';
+import { PlacesService } from 'src/modules/places/places.service';
 
 @Injectable()
 export class GoogleService {
@@ -32,58 +28,12 @@ export class GoogleService {
   constructor(
     private config: ConfigService,
     private browser: BrowserService,
+    private placeService: PlacesService,
   ) {}
 
   public async onModuleInit(): Promise<any> {
     this.googleUrl = `${WEBSITE.GOOGLE.URL}/?hl=en-US`;
     this.googleMapUrl = WEBSITE.GOOGLE.MAP_URL;
-  }
-
-  async loginGoogle(page: Page, keyboard: Keyboard) {
-    try {
-      await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
-      const email = await this.config.get(GOOGLE_EMAIL);
-      const password = await this.config.get(GOOGLE_PASSWORD);
-      const signInLink = await page.evaluate(() => {
-        const anchors = document.getElementsByTagName('a');
-        for (const anchor of anchors as any) {
-          if (anchor.innerText === 'Sign in') {
-            return anchor.href;
-          }
-        }
-        return null;
-      });
-      if (!signInLink) return { message: 'Logged in oke!' };
-      await page.goto(signInLink);
-      const inputEmailEl = await page.$(WEBSITE.GOOGLE.INPUT_EMAIL);
-      if (inputEmailEl) {
-        await inputEmailEl.evaluate((el: any) => (el.value = ''));
-        await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 50 });
-        await keyboard.press(KEYBOARD_ENTER);
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-      }
-      await page.waitForFunction(
-        () => !document.querySelector('*[aria-busy="true"]'),
-        { timeout: 10000 },
-      );
-      const inputPasswordEl = await page.$(WEBSITE.GOOGLE.INPUT_PASSWORD);
-      if (inputPasswordEl) {
-        await inputPasswordEl.evaluate((el: any) => (el.value = ''));
-        await page.type(WEBSITE.GOOGLE.INPUT_PASSWORD, password, {
-          delay: 50,
-        });
-        await keyboard.press(KEYBOARD_ENTER);
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-      }
-      await setDelay(10000);
-
-      await setDelay(30000);
-      return {
-        message: 'Logged in successfully!',
-      };
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   async searchPlaceseGoogle(payload): Promise<any> {
@@ -101,7 +51,7 @@ export class GoogleService {
       }
       let pageNumber = 0;
 
-      const businessList = [];
+      const placeList = [];
       while (true) {
         await setDelay(2000);
         const placeListEl = await page.$$(WEBSITE.GOOGLE.PLACESE_ITEM);
@@ -121,7 +71,7 @@ export class GoogleService {
             .evaluate((el) => el.getAttribute('data-cid'))
             .catch(() => undefined);
           const googleMapLink = `${this.googleMapUrl}?cid=${googleMapId}`;
-          if (businessList?.some((i) => i.googleMapLink === googleMapLink))
+          if (placeList?.some((i) => i.googleMapLink === googleMapLink))
             continue;
 
           const displayName = await page
@@ -133,7 +83,7 @@ export class GoogleService {
             .catch(() => undefined);
           if (!displayName) continue;
 
-          const category = await page
+          const categories = await page
             .evaluate(
               (el: Element) => el.querySelector('.TLYLSe .zloOqf').textContent,
               detailContainer,
@@ -188,25 +138,23 @@ export class GoogleService {
             })
             .catch(() => undefined);
 
-          const parseAddress = parseUSAddress(address);
-          const newBusiness = {
+          const newPlace = {
             website,
             address,
             displayName,
             googleMapLink,
             imagesUrl,
-            addressZipCode: parseAddress.zip,
-            addressState: parseAddress.state,
-            addressCity: parseAddress.city,
             thumbnailUrl: imagesUrl?.[0],
             linkProfile: parseWebsite(linkProfileEl),
             phoneNumber: phoneNumber
               ? formatPhoneNumber(phoneNumber)
               : undefined,
-            category: category?.replace(/[$₫]/g, ''),
+            categories: categories?.replace(/[$₫]/g, ''),
           };
 
-          businessList.push({ ...newBusiness });
+          await this.placeService.upsert(newPlace);
+
+          placeList.push({ ...newPlace });
         }
         const buttonNextPageEl = await page.$('table tbody tr td #pnnext');
         if (buttonNextPageEl) {
@@ -217,10 +165,59 @@ export class GoogleService {
           break;
         }
       }
-      return businessList;
     } catch (e) {
       console.log(e);
       throw new UnprocessableEntityException(e?.message);
+    } finally {
+      await browser.close();
+    }
+  }
+
+  async loginGoogle() {
+    const { browser, page, keyboard } = await this.browser.createBrowser();
+    try {
+      await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
+      const email = await this.config.get(GOOGLE_EMAIL);
+      const password = await this.config.get(GOOGLE_PASSWORD);
+      const signInLink = await page.evaluate(() => {
+        const anchors = document.getElementsByTagName('a');
+        for (const anchor of anchors as any) {
+          if (anchor.innerText === 'Sign in') {
+            return anchor.href;
+          }
+        }
+        return null;
+      });
+      if (!signInLink) return { message: 'Logged in oke!' };
+      await page.goto(signInLink);
+      const inputEmailEl = await page.$(WEBSITE.GOOGLE.INPUT_EMAIL);
+      if (inputEmailEl) {
+        await inputEmailEl.evaluate((el: any) => (el.value = ''));
+        await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 50 });
+        await keyboard.press(KEYBOARD_ENTER);
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      }
+      await page.waitForFunction(
+        () => !document.querySelector('*[aria-busy="true"]'),
+        { timeout: 10000 },
+      );
+      const inputPasswordEl = await page.$(WEBSITE.GOOGLE.INPUT_PASSWORD);
+      if (inputPasswordEl) {
+        await inputPasswordEl.evaluate((el: any) => (el.value = ''));
+        await page.type(WEBSITE.GOOGLE.INPUT_PASSWORD, password, {
+          delay: 50,
+        });
+        await keyboard.press(KEYBOARD_ENTER);
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+      }
+      await setDelay(10000);
+
+      await setDelay(30000);
+      return {
+        message: 'Logged in successfully!',
+      };
+    } catch (e) {
+      console.log(e);
     } finally {
       await browser.close();
     }

@@ -4,13 +4,13 @@ https://docs.nestjs.com/modules
 */
 
 import { Module } from '@nestjs/common';
-import { CrawlerService } from './service/crawler.service';
 import { BrowserService } from './service/browser.service';
 import { GoogleService } from './service/google.service';
+import { PlacesService } from '../places/places.service';
 
 @Module({
   imports: [],
   controllers: [CrawlerController],
-  providers: [CrawlerService, BrowserService, GoogleService],
+  providers: [BrowserService, GoogleService, PlacesService],
 })
 export class CrawlerModule {}

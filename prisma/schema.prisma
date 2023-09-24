@@ -14,9 +14,9 @@ model Place {
   uuid           String    @id @default(dbgenerated("gen_random_uuid()"))
   googleMapLink  String?   @unique(map: "Place_google_map_key")
   displayName    String
-  phoneNumber    String    @unique(map: "Place_phone_key")
+  phoneNumber    String?   @unique(map: "Place_phone_key")
   website        String?
-  address        String    @unique(map: "Place_address_key")
+  address        String    
   linkProfile    Json?
   googleVerified Boolean?  @default(false)
   googleActived  Boolean?  @default(false)

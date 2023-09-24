@@ -1,12 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { StringField } from 'src/decorators';
 
 export class CreateScapDataDto {
-  @IsString()
-  @ApiProperty({ example: 'Restaurant' })
+  @StringField({ swaggerOptions: { example: 'Restaurant' } })
   term?: string;
 
-  @IsString()
-  @ApiProperty({ example: 'TP Hồ Chí Minh' })
+  @StringField({ swaggerOptions: { example: 'TP Hồ Chí Minh' } })
   where?: string;
 }

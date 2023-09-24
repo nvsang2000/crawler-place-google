@@ -6,8 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    PlacesModule,
-    CrawlerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -18,6 +16,8 @@ import { ConfigModule } from '@nestjs/config';
         middlewares: [],
       },
     }),
+    PlacesModule,
+    CrawlerModule,
   ],
   exports: [AppModule],
 })

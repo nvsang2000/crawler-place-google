@@ -5,11 +5,12 @@ https://docs.nestjs.com/providers#services
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { Keyboard, Page, PuppeteerLaunchOptions } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 @Injectable()
 export class BrowserService {
   async createBrowser(options?: PuppeteerLaunchOptions) {
-    const browser = await puppeteer.launch({
+    const browser = await puppeteer.use(StealthPlugin()).launch({
       ...options,
       headless: false,
       args: [
@@ -24,7 +25,7 @@ export class BrowserService {
         '--disable-site-isolation-trials',
       ],
       ignoreDefaultArgs: ['--disable-extensions'],
-      userDataDir: './browser',
+      userDataDir: '/browser',
     });
     try {
       const page = await browser.newPage();
