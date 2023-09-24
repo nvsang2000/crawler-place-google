@@ -1,5 +1,5 @@
 # Dockerfile
-FROM node:18-buster
+FROM node:16
 
 RUN mkdir /app
 WORKDIR /app
