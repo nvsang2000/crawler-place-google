@@ -9,18 +9,22 @@ import {
 } from '@nestjs/common';
 import { Keyboard, Page } from 'puppeteer';
 import {
-  GOOGLE_EMAIL,
-  GOOGLE_PASSWORD,
   KEYBOARD_ENTER,
   MESSAGE_ERROR,
   OPTION_GO_TO_PAGE,
   WEBSITE,
 } from 'src/constants';
-import { formatPhoneNumber, parseWebsite, setDelay } from 'src/helper';
+import {
+  formatPhoneNumber,
+  parseWebsite,
+  promisesSequentially,
+  setDelay,
+} from 'src/helper';
 import { ConfigService } from '@nestjs/config';
 import { BrowserService } from './browser.service';
 import { PlacesService } from 'src/modules/places/places.service';
-
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 @Injectable()
 export class GoogleService {
   private googleUrl: string;
@@ -173,12 +177,80 @@ export class GoogleService {
     }
   }
 
-  async loginGoogle() {
-    const { browser, page, keyboard } = await this.browser.createBrowser();
+  async manyBrowser() {
+    const accountList = [
+      { username: 'khoa08407@gmail.com', password: 'Sa1234567890@' },
+      { username: 'hoavannam2378@gmail.com', password: 'Sa1234567890@' },
+    ];
+
+    const promisesAcount = accountList?.map((i) => {
+      return async () => {
+        return await this.loginGoogle(i.username, i.password);
+      };
+    });
+
+    return await promisesSequentially(promisesAcount, promisesAcount?.length);
+  }
+
+  async createAccountGoogle() {
+    const browser = await puppeteer.use(StealthPlugin()).launch({
+      headless: false,
+      ignoreDefaultArgs: ['--disable-extensions'],
+      //userDataDir: './browser',
+    });
+
+    const page = await browser.newPage();
+    await page.goto(
+      'https://accounts.google.com/lifecycle/steps/signup/name?continue=https://mail.google.com/mail&dsh=S-636699139:1704336244219888&flowEntry=SignUp&flowName=GlifWebSignIn&hl=en&service=mail&theme=glif&TL=AHNYTIRtX2ougAwvISv69J88bJupUDe16EtUz1R107PfeoNLFtGg_QGFVnUBXnGq',
+      OPTION_GO_TO_PAGE,
+    );
+
+    const inputFistName = await page.$('[name="firstName"]');
+    const inputLastName = await page.$('[name="lastName"]');
+    if (inputFistName && inputLastName) {
+      await inputFistName.evaluate((el: any) => (el.value = ''));
+      await page.type('[name="firstName"]', 'hoang', { delay: 100 });
+
+      await inputLastName.evaluate((el: any) => (el.value = ''));
+      await page.type('[name="lastName"]', 'thien de', { delay: 100 });
+      await page.keyboard.press(KEYBOARD_ENTER);
+    }
+
+    const selectMonth = await page.waitForSelector('#month');
+    if (selectMonth) await page.select('#month', '1');
+
+    const inputDay = await page.waitForSelector('input[name="day"]');
+    if (inputDay) {
+      await Promise.all([
+        setDelay(2000),
+        await page.type('input[name="day"]', '20', { delay: 100 }),
+      ]);
+    }
+    const inputYear = await page.waitForSelector('input[name="year"]');
+    if (inputYear) {
+      await page.type('input[name="year"]', '2000', {
+        delay: 100,
+      });
+    }
+    const selectGender = await page.waitForSelector('#gender');
+    if (selectGender) await page.select('#gender', '2');
+
+    await page.keyboard.press(KEYBOARD_ENTER);
+
+    //const buttonNext = await page.waitForSelector('[type="button"]');
+    //console.log('buttonNext', selectMonth);
+    //await page.click('[type="button"]');
+  }
+
+  async loginGoogle(email: string, password: string) {
+    const browser = await puppeteer.use(StealthPlugin()).launch({
+      headless: false,
+      ignoreDefaultArgs: ['--disable-extensions'],
+      //userDataDir: './browser',
+    });
+    const page = await browser.newPage();
     try {
       await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
-      const email = await this.config.get(GOOGLE_EMAIL);
-      const password = await this.config.get(GOOGLE_PASSWORD);
       const signInLink = await page.evaluate(() => {
         const anchors = document.getElementsByTagName('a');
         for (const anchor of anchors as any) {
@@ -193,8 +265,8 @@ export class GoogleService {
       const inputEmailEl = await page.$(WEBSITE.GOOGLE.INPUT_EMAIL);
       if (inputEmailEl) {
         await inputEmailEl.evaluate((el: any) => (el.value = ''));
-        await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 50 });
-        await keyboard.press(KEYBOARD_ENTER);
+        await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 100 });
+        await page.keyboard.press(KEYBOARD_ENTER);
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
       }
       await page.waitForFunction(
@@ -205,21 +277,16 @@ export class GoogleService {
       if (inputPasswordEl) {
         await inputPasswordEl.evaluate((el: any) => (el.value = ''));
         await page.type(WEBSITE.GOOGLE.INPUT_PASSWORD, password, {
-          delay: 50,
+          delay: 100,
         });
-        await keyboard.press(KEYBOARD_ENTER);
+        await page.keyboard.press(KEYBOARD_ENTER);
         await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
       }
-      await setDelay(10000);
-
-      await setDelay(30000);
       return {
         message: 'Logged in successfully!',
       };
     } catch (e) {
       console.log(e);
-    } finally {
-      await browser.close();
     }
   }
 

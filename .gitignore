@@ -3,7 +3,6 @@
 /node_modules
 /browser/*
 
-.env
 # Logs
 logs
 *.log

@@ -13,19 +13,8 @@ export class BrowserService {
     const browser = await puppeteer.use(StealthPlugin()).launch({
       ...options,
       headless: false,
-      args: [
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--disable-setuid-sandbox',
-        '--no-first-run',
-        '--no-sandbox',
-        '--no-zygote',
-        '--deterministic-fetch',
-        '--disable-features=IsolateOrigins',
-        '--disable-site-isolation-trials',
-      ],
       ignoreDefaultArgs: ['--disable-extensions'],
-      userDataDir: '/browser',
+      userDataDir: './browser',
     });
     try {
       const page = await browser.newPage();

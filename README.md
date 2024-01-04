@@ -71,3 +71,10 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+https://accounts.google.com/lifecycle/steps/signup/name?continue=https://mail.google.com/mail&dsh=S-636699139:1704336244219888&flowEntry=SignUp&flowName=GlifWebSignIn&hl=en&service=mail&theme=glif&TL=AHNYTIRtX2ougAwvISv69J88bJupUDe16EtUz1R107PfeoNLFtGg_QGFVnUBXnGq
+
+
+https://accounts.google.com/lifecycle/steps/signup/name?continue=https://myaccount.google.com/?pli%3D1&dsh=S-200545262:1704336340397420&ec=GAlAwAE&flowEntry=SignUp&flowName=GlifWebSignIn&hl=en&service=accountsettings&theme=glif&TL=AHNYTIRTgiDXGgFKjZ3AwrAAMLsuJTGEperbW_h3cCDuHjmS7K67Vh-5ppqoA56U
+
+https://accounts.google.com/v3/signin/identifier?authuser=0&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ec=GAlAFw&hl=vi&service=mail&flowName=GlifWebSignIn&flowEntry=AddSession&dsh=S-1358702463%3A1704336552719590&theme=glif

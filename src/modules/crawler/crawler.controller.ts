@@ -14,7 +14,12 @@ export class CrawlerController {
 
   @Get('login-google')
   loginGoogle() {
-    return this.googleService.loginGoogle();
+    return this.googleService.manyBrowser();
+  }
+
+  @Get('create-google')
+  createGoogle() {
+    return this.googleService.createAccountGoogle();
   }
 
   @Get()

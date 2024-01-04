@@ -96,3 +96,30 @@ export const removeDuplicates = (arr: any[]) => {
 
   return uniqueArr;
 };
+
+export const promisesSequentially = async (promises: any[], limit: number) => {
+  const results = [];
+  let currentIndex = 0; // Index of the fulfilled promise
+
+  // Function executes the next promise in the sequence
+  async function executeNext() {
+    const index = currentIndex; // Save the current index to ensure the correct promise is made
+    currentIndex++; // Increase the index to prepare for the next promise
+
+    if (index >= promises.length) return; // If the index exceeds the number of promises, end
+
+    const result = await promises[index](); // Wait for the promise to complete
+    results[index] = result; // Add the result at the correct index
+    await executeNext(); // Callback the rule to execute the next promise
+  }
+
+  // Create a promise for each execution and add it to the executingPromises array
+  const executingPromises = [];
+  for (let i = 0; i < limit; i++) {
+    executingPromises.push(executeNext());
+  }
+
+  // Wait for all promises in executingPromises to complete
+  await Promise.all(executingPromises);
+  return results;
+};
