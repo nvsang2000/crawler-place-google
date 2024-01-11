@@ -185,14 +185,27 @@ export class GoogleService {
 
     const promisesAcount = accountList?.map((i) => {
       return async () => {
-        return await this.loginGoogle(i.username, i.password);
+        const browser = await puppeteer.use(StealthPlugin()).launch({
+          headless: false,
+          ignoreDefaultArgs: ['--disable-extensions'],
+          //userDataDir: './browser',
+        });
+
+        const page = await browser.newPage();
+        await this.processLogin(i.username, i.password, page);
+        await setDelay(1000);
+        await page.goto(
+          'https://www.tiktok.com/@diepminh40/video/7322431831775710466?lang=en',
+          OPTION_GO_TO_PAGE,
+        );
+        // await this.processCreateAccount(page);
       };
     });
 
     return await promisesSequentially(promisesAcount, promisesAcount?.length);
   }
 
-  async createAccountGoogle() {
+  async newBrowserCreateAccount() {
     const browser = await puppeteer.use(StealthPlugin()).launch({
       headless: false,
       ignoreDefaultArgs: ['--disable-extensions'],
@@ -200,93 +213,141 @@ export class GoogleService {
     });
 
     const page = await browser.newPage();
+    await this.processCreateAccount(page);
+  }
+
+  async processCreateAccount(page: Page) {
     await page.goto(
-      'https://accounts.google.com/lifecycle/steps/signup/name?continue=https://mail.google.com/mail&dsh=S-636699139:1704336244219888&flowEntry=SignUp&flowName=GlifWebSignIn&hl=en&service=mail&theme=glif&TL=AHNYTIRtX2ougAwvISv69J88bJupUDe16EtUz1R107PfeoNLFtGg_QGFVnUBXnGq',
+      'https://accounts.google.com/SignOutOptions?hl=en&continue=https://www.google.com.vn/%3Fhl%3Den&ec=GBRAmgQ',
       OPTION_GO_TO_PAGE,
     );
+
+    const linkCreate = await page.waitForSelector('.add');
+    await linkCreate.click();
+    await setDelay(300);
+
+    // const signInLink = await page.evaluate(() => {
+    //   const anchors = document.getElementsByTagName('a');
+    //   for (const anchor of anchors as any) {
+    //     if (anchor.innerText === 'Sign in') {
+    //       return anchor.href;
+    //     }
+    //   }
+    //   return null;
+    // });
+    // await page.goto(signInLink);
+
+    const buttonCreate = await page.waitForSelector(
+      'button[aria-haspopup="menu"]',
+      { timeout: 10000 },
+    );
+
+    await buttonCreate.click();
+    await setDelay(1000);
+
+    const selectLink = await page.waitForSelector('li[jsname="RZzeR"]');
+    await selectLink.click();
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    await setDelay(2000);
 
     const inputFistName = await page.$('[name="firstName"]');
     const inputLastName = await page.$('[name="lastName"]');
     if (inputFistName && inputLastName) {
       await inputFistName.evaluate((el: any) => (el.value = ''));
-      await page.type('[name="firstName"]', 'hoang', { delay: 100 });
+      await page.type('[name="firstName"]', 'sdfsdfsdf', { delay: 100 });
 
       await inputLastName.evaluate((el: any) => (el.value = ''));
-      await page.type('[name="lastName"]', 'thien de', { delay: 100 });
+      await page.type('[name="lastName"]', 'đfgdfgdfg', { delay: 100 });
       await page.keyboard.press(KEYBOARD_ENTER);
     }
 
     const selectMonth = await page.waitForSelector('#month');
     if (selectMonth) await page.select('#month', '1');
+    await setDelay(300);
+    const selectGender = await page.waitForSelector('#gender');
+    if (selectGender) await page.select('#gender', '2');
+    await setDelay(300);
+    await page.keyboard.press(KEYBOARD_ENTER);
 
     const inputDay = await page.waitForSelector('input[name="day"]');
-    if (inputDay) {
-      await Promise.all([
-        setDelay(2000),
-        await page.type('input[name="day"]', '20', { delay: 100 }),
-      ]);
+    if (inputDay) await Promise.all([setDelay(2000)]);
+
+    await page.type('input[type="tel"]', '12', { delay: 100 });
+    await page.type('input[name="year"]', '1998', {
+      delay: 100,
+    });
+
+    await page.click('[type="button"]');
+    await setDelay(2000);
+
+    const selectEmail = await page.waitForSelector(
+      '[aria-labelledby="selectioni1"]',
+    );
+    await setDelay(1000);
+    await selectEmail.click();
+    await page.click('[type="button"]');
+
+    await setDelay(2000);
+    const inputPassword = await page.$('input[name="Passwd"]');
+    if (inputPassword) {
+      await page.type('input[name="Passwd"]', 'Sa19876509@', { delay: 100 });
     }
-    const inputYear = await page.waitForSelector('input[name="year"]');
-    if (inputYear) {
-      await page.type('input[name="year"]', '2000', {
+
+    const inputConfirmPassword = await page.$('input[name="PasswdAgain"]');
+    if (inputConfirmPassword) {
+      await page.type('input[name="PasswdAgain"]', 'Sa19876509@', {
         delay: 100,
       });
     }
-    const selectGender = await page.waitForSelector('#gender');
-    if (selectGender) await page.select('#gender', '2');
 
-    await page.keyboard.press(KEYBOARD_ENTER);
-
-    //const buttonNext = await page.waitForSelector('[type="button"]');
-    //console.log('buttonNext', selectMonth);
-    //await page.click('[type="button"]');
+    await page.click('[type="button"]');
   }
 
   async loginGoogle(email: string, password: string) {
     const browser = await puppeteer.use(StealthPlugin()).launch({
       headless: false,
       ignoreDefaultArgs: ['--disable-extensions'],
-      //userDataDir: './browser',
+      userDataDir: './browser',
     });
     const page = await browser.newPage();
-    try {
-      await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
-      const signInLink = await page.evaluate(() => {
-        const anchors = document.getElementsByTagName('a');
-        for (const anchor of anchors as any) {
-          if (anchor.innerText === 'Sign in') {
-            return anchor.href;
-          }
+    await this.processLogin(email, password, page);
+
+    return {
+      message: 'Logged in successfully!',
+    };
+  }
+  async processLogin(email: string, password: string, page: Page) {
+    await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
+    const signInLink = await page.evaluate(() => {
+      const anchors = document.getElementsByTagName('a');
+      for (const anchor of anchors as any) {
+        if (anchor.innerText === 'Sign in') {
+          return anchor.href;
         }
-        return null;
+      }
+      return null;
+    });
+    if (!signInLink) return { message: 'Logged in oke!' };
+    await page.goto(signInLink);
+    const inputEmailEl = await page.$(WEBSITE.GOOGLE.INPUT_EMAIL);
+    if (inputEmailEl) {
+      await inputEmailEl.evaluate((el: any) => (el.value = ''));
+      await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 100 });
+      await page.keyboard.press(KEYBOARD_ENTER);
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    }
+    await page.waitForFunction(
+      () => !document.querySelector('*[aria-busy="true"]'),
+      { timeout: 10000 },
+    );
+    const inputPasswordEl = await page.$(WEBSITE.GOOGLE.INPUT_PASSWORD);
+    if (inputPasswordEl) {
+      await inputPasswordEl.evaluate((el: any) => (el.value = ''));
+      await page.type(WEBSITE.GOOGLE.INPUT_PASSWORD, password, {
+        delay: 100,
       });
-      if (!signInLink) return { message: 'Logged in oke!' };
-      await page.goto(signInLink);
-      const inputEmailEl = await page.$(WEBSITE.GOOGLE.INPUT_EMAIL);
-      if (inputEmailEl) {
-        await inputEmailEl.evaluate((el: any) => (el.value = ''));
-        await page.type(WEBSITE.GOOGLE.INPUT_EMAIL, email, { delay: 100 });
-        await page.keyboard.press(KEYBOARD_ENTER);
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-      }
-      await page.waitForFunction(
-        () => !document.querySelector('*[aria-busy="true"]'),
-        { timeout: 10000 },
-      );
-      const inputPasswordEl = await page.$(WEBSITE.GOOGLE.INPUT_PASSWORD);
-      if (inputPasswordEl) {
-        await inputPasswordEl.evaluate((el: any) => (el.value = ''));
-        await page.type(WEBSITE.GOOGLE.INPUT_PASSWORD, password, {
-          delay: 100,
-        });
-        await page.keyboard.press(KEYBOARD_ENTER);
-        await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-      }
-      return {
-        message: 'Logged in successfully!',
-      };
-    } catch (e) {
-      console.log(e);
+      await page.keyboard.press(KEYBOARD_ENTER);
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
     }
   }
 

@@ -19,7 +19,7 @@ export class CrawlerController {
 
   @Get('create-google')
   createGoogle() {
-    return this.googleService.createAccountGoogle();
+    return this.googleService.newBrowserCreateAccount();
   }
 
   @Get()
