@@ -99,22 +99,27 @@ export class GoogleService {
               detailContainer,
             )
             .catch(() => undefined);
-          const imagesUrl = await page.evaluate(() => {
-            const buttons = document.querySelectorAll(
-              '.Rbx14 button[data-clid="local-photo-browser"]',
-            );
-            const srcList = [];
-            buttons.forEach((button: any) => {
-              const backgroundImageStyle =
-                button.querySelector('.vwrQge').style.backgroundImage;
-              const srcMatches = backgroundImageStyle.match(/url\((.*?)\)/);
-              if (srcMatches && srcMatches[1]) {
-                srcList.push(srcMatches[1].replace(/"/g, ''));
-              }
-            });
 
-            return srcList;
-          });
+          const imageList = await page.waitForSelector('[jsmodel="fadmnd"]');
+          await imageList.click();
+          await setDelay(1000);
+          await page.waitForSelector('c-wiz ');
+
+          const imagesUrl = await page
+            .$$eval('[jscontroller="U0Base"]', (els: Element[]) => {
+              return els.map((el: Element) => {
+                const link = el.querySelector('img').src;
+                return link && link?.split('=')[0];
+              });
+            })
+            .catch(() => undefined);
+          console.log('imagesUrl', imagesUrl);
+
+          const closeImageList = await page.waitForSelector(
+            'button[data-mdc-dialog-action="close"]',
+          );
+          await closeImageList.click();
+          await setDelay(1000);
           const address = await page
             .evaluate(
               (el: Element) =>
@@ -124,6 +129,14 @@ export class GoogleService {
               detailContainer,
             )
             .catch(() => undefined);
+          const parts = address?.split(',').map((part) => part.trim());
+          const parserAddress = {
+            address: parts[0],
+            ward: parts[1],
+            district: parts[2],
+            city: parts[3]?.replace(/\d/g, '').trim(),
+          };
+          console.log('hello', parserAddress);
           const phoneNumber = await page
             .evaluate(
               (el: Element) =>
@@ -144,7 +157,7 @@ export class GoogleService {
 
           const newPlace = {
             website,
-            address,
+            ...parserAddress,
             displayName,
             googleMapLink,
             imagesUrl,

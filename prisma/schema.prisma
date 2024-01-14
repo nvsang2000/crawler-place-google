@@ -12,9 +12,9 @@ datasource db {
 
 model Place {
   uuid           String    @id @default(uuid()) @db.Uuid
-  googleMapLink  String?   @unique(map: "Place_google_map_key") @db.VarChar(128)
+  googleMapLink  String?   @unique(map: "Place_google_map_key") @db.VarChar(255)
   displayName    String    @db.VarChar(255)
-  phoneNumber    String?   @unique(map: "Place_phone_key") @db.VarChar(64)
+  phoneNumber    String?   @db.VarChar(64)
   website        String?   @db.VarChar(255)
   city           String?   @db.VarChar(128)
   district       String?   @db.VarChar(255)
@@ -28,6 +28,13 @@ model Place {
   imagesUrl      Json?
   createdAt      DateTime? @default(now())
   updatedAt      DateTime? @updatedAt
+
+  @@index([city])
+  @@index([district])
+  @@index([ward])
+  @@index([address])
+  @@index([displayName])
+
 
   @@map("place")
 }
