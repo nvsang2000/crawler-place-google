@@ -1,6 +1,6 @@
 import { StringField } from 'src/decorators';
 
-export class CreateScapDataDto {
+export class CreateScratchDataDto {
   @StringField({ swaggerOptions: { example: 'Restaurant' } })
   term?: string;
 

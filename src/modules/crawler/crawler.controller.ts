@@ -5,7 +5,7 @@ https://docs.nestjs.com/controllers#controllers
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GoogleService } from './service/google.service';
-import { CreateScapDataDto } from './dto/create-scrap-data.dto';
+import { CreateScratchDataDto } from './dto/create-scrap-data.dto';
 
 @ApiTags('Crawler Place Google')
 @Controller('crawler')
@@ -23,7 +23,7 @@ export class CrawlerController {
   }
 
   @Get()
-  createCrawler(@Query() payload: CreateScapDataDto) {
-    return this.googleService.searchPlaceseGoogle(payload);
+  createCrawler(@Query() payload: CreateScratchDataDto) {
+    return this.googleService.searchPlacesGoogle(payload);
   }
 }

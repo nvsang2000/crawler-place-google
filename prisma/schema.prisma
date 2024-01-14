@@ -11,12 +11,15 @@ datasource db {
 }
 
 model Place {
-  uuid           String    @id @default(dbgenerated("gen_random_uuid()"))
-  googleMapLink  String?   @unique(map: "Place_google_map_key")
-  displayName    String
-  phoneNumber    String?   @unique(map: "Place_phone_key")
-  website        String?
-  address        String    
+  uuid           String    @id @default(uuid()) @db.Uuid
+  googleMapLink  String?   @unique(map: "Place_google_map_key") @db.VarChar(128)
+  displayName    String    @db.VarChar(255)
+  phoneNumber    String?   @unique(map: "Place_phone_key") @db.VarChar(64)
+  website        String?   @db.VarChar(255)
+  city           String?   @db.VarChar(128)
+  district       String?   @db.VarChar(255)
+  ward           String?   @db.VarChar(255)
+  address        String?   @db.VarChar(255)
   linkProfile    Json?
   googleVerified Boolean?  @default(false)
   googleActived  Boolean?  @default(false)

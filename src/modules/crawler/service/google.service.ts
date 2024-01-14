@@ -40,7 +40,7 @@ export class GoogleService {
     this.googleMapUrl = WEBSITE.GOOGLE.MAP_URL;
   }
 
-  async searchPlaceseGoogle(payload): Promise<any> {
+  async searchPlacesGoogle(payload): Promise<any> {
     const { browser, page, keyboard } = await this.browser.createBrowser();
     try {
       await page.goto(this.googleUrl, OPTION_GO_TO_PAGE);
@@ -173,7 +173,7 @@ export class GoogleService {
       console.log(e);
       throw new UnprocessableEntityException(e?.message);
     } finally {
-      await browser.close();
+      //await browser.close();
     }
   }
 
@@ -355,7 +355,7 @@ export class GoogleService {
     await page.waitForSelector(WEBSITE.GOOGLE.INPUT_SEARCH);
     const inputSearchEl = await page.$(WEBSITE.GOOGLE.INPUT_SEARCH);
     await inputSearchEl.evaluate((el: any) => (el.value = ''));
-    await inputSearchEl.type(textSearch, { delay: 5 });
+    await inputSearchEl.type(textSearch, { delay: 100 });
     await keyboard.press(KEYBOARD_ENTER);
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
   }
