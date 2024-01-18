@@ -6,7 +6,7 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { UpsertPlaceDto } from './dto';
 import { Response } from 'express';
-import { isBoolean, isNumberString } from 'class-validator';
+import { isNumberString } from 'class-validator';
 import { PaginationMetaParams } from 'src/dto/paginationMeta.dto';
 import { FetchDto } from 'src/dto/fetch.dto';
 
@@ -16,10 +16,6 @@ export class PlacesService {
 
   createQuery(fetchDto: FetchDto) {
     const { search } = fetchDto;
-
-    const isActive = !!fetchDto?.isActive
-      ? fetchDto.isActive === 'true'
-      : undefined;
 
     return {
       ...(search && {
@@ -36,7 +32,6 @@ export class PlacesService {
               },
         ],
       }),
-      ...(isBoolean(isActive) && { isActive }),
     };
   }
 

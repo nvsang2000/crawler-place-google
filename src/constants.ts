@@ -51,9 +51,9 @@ export const WEBSITE = {
     PLACE: '.osrp-blk',
     PLACE_IS_ACTIVE: '#Shyhc',
     PLACESE: 'div[jsmodel="QPRQHf"]',
-    PLACESE_ITEM: '.cXedhc a[data-cid][tabindex="0"]',
-    PLACESE_ITEM_CID: '.immersive-container [data-cid]',
-    PLACESE_ITEM_CONTAINER:
+    PLACE_ITEM: '.cXedhc a[data-cid][tabindex="0"]',
+    PLACE_ITEM_CID: '.immersive-container [data-cid]',
+    PLACE_ITEM_CONTAINER:
       'g-sticky-content-container block-component .xpdopen .ifM9O',
   },
   FIND_OPEN: {

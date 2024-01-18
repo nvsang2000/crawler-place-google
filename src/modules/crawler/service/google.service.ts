@@ -58,19 +58,19 @@ export class GoogleService {
       const placeList = [];
       while (true) {
         await setDelay(2000);
-        const placeListEl = await page.$$(WEBSITE.GOOGLE.PLACESE_ITEM);
+        const placeListEl = await page.$$(WEBSITE.GOOGLE.PLACE_ITEM);
         if (!placeListEl) break;
 
         for (const [i, placeEl] of placeListEl.entries()) {
-          console.log('pageNumber, index', pageNumber, i, placeListEl.length);
+          console.log('pageNumber', placeEl);
           await placeEl.evaluate((element: any) => element.click());
           await setDelay(1000);
           const detailContainer = await page.waitForSelector(
-            WEBSITE.GOOGLE.PLACESE_ITEM_CONTAINER,
+            WEBSITE.GOOGLE.PLACE_ITEM_CONTAINER,
             { timeout: 3000 },
           );
           if (await page.$(WEBSITE.GOOGLE.PLACE_IS_ACTIVE)) continue;
-          const googleMapIdEl = await page.$(WEBSITE.GOOGLE.PLACESE_ITEM_CID);
+          const googleMapIdEl = await page.$(WEBSITE.GOOGLE.PLACE_ITEM_CID);
           const googleMapId = await googleMapIdEl
             .evaluate((el) => el.getAttribute('data-cid'))
             .catch(() => undefined);
@@ -100,16 +100,19 @@ export class GoogleService {
             )
             .catch(() => undefined);
 
-          const imageList = await page.waitForSelector('[jsmodel="fadmnd"]');
+          const imageList = await page.waitForSelector('[jsmodel="fadmnd"]', {
+            timeout: 1000,
+          });
           await imageList.click();
           await setDelay(1000);
-          await page.waitForSelector('c-wiz ');
+          await page.waitForSelector('c-wiz', { timeout: 1000 });
 
           const imagesUrl = await page
             .$$eval('[jscontroller="U0Base"]', (els: Element[]) => {
               return els.map((el: Element) => {
                 const link = el.querySelector('img').src;
-                return link && link?.split('=')[0];
+                const coverLink = link?.split('=')[0];
+                return coverLink;
               });
             })
             .catch(() => undefined);
@@ -136,7 +139,6 @@ export class GoogleService {
             district: parts[2],
             city: parts[3]?.replace(/\d/g, '').trim(),
           };
-          console.log('hello', parserAddress);
           const phoneNumber = await page
             .evaluate(
               (el: Element) =>
@@ -183,7 +185,6 @@ export class GoogleService {
         }
       }
     } catch (e) {
-      console.log(e);
       throw new UnprocessableEntityException(e?.message);
     } finally {
       //await browser.close();
