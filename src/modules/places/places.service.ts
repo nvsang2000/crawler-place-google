@@ -73,6 +73,17 @@ export class PlacesService {
     }
   }
 
+  async findByGoogleId(id: string) {
+    try {
+      const result = await this.prisma.place.findUnique({
+        where: { googleMapLink: id },
+      });
+      return result;
+    } catch (e) {
+      throw new UnprocessableEntityException(e?.message);
+    }
+  }
+
   async create(createPlace) {
     try {
       const result = await this.prisma.place.create({ data: createPlace });

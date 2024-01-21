@@ -6,20 +6,20 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Place {
-  uuid           String    @id @default(uuid()) @db.Uuid
-  googleMapLink  String?   @unique(map: "Place_google_map_key") @db.VarChar(255)
-  displayName    String    @db.VarChar(255)
-  phoneNumber    String?   @db.VarChar(64)
-  website        String?   @db.VarChar(255)
-  city           String?   @db.VarChar(128)
-  district       String?   @db.VarChar(255)
-  ward           String?   @db.VarChar(255)
-  address        String?   @db.VarChar(255)
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  googleMapLink  String?   @unique(map: "Place_google_map_key")
+  displayName    String    
+  phoneNumber    String?   
+  website        String?   
+  city           String?   
+  district       String?   
+  ward           String?   
+  address        String?   
   linkProfile    Json?
   googleVerified Boolean?  @default(false)
   googleActived  Boolean?  @default(false)

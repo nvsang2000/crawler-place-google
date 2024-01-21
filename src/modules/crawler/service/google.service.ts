@@ -53,7 +53,6 @@ export class GoogleService {
         await buttonMoreEl.click();
         await page.waitForNavigation();
       }
-      let pageNumber = 0;
 
       const placeList = [];
       while (true) {
@@ -61,7 +60,7 @@ export class GoogleService {
         const placeListEl = await page.$$(WEBSITE.GOOGLE.PLACE_ITEM);
         if (!placeListEl) break;
 
-        for (const [i, placeEl] of placeListEl.entries()) {
+        for (const placeEl of placeListEl) {
           console.log('pageNumber', placeEl);
           await placeEl.evaluate((element: any) => element.click());
           await setDelay(1000);
@@ -75,6 +74,10 @@ export class GoogleService {
             .evaluate((el) => el.getAttribute('data-cid'))
             .catch(() => undefined);
           const googleMapLink = `${this.googleMapUrl}?cid=${googleMapId}`;
+
+          const checkGoogleId =
+            await this.placeService.findByGoogleId(googleMapLink);
+          if (checkGoogleId) continue;
           if (placeList?.some((i) => i.googleMapLink === googleMapLink))
             continue;
 
@@ -100,12 +103,12 @@ export class GoogleService {
             )
             .catch(() => undefined);
 
-          const imageList = await page.waitForSelector('[jsmodel="fadmnd"]', {
-            timeout: 1000,
-          });
+          const imageList = await page
+            .waitForSelector('[jsmodel="fadmnd"]')
+            .catch(() => undefined);
           await imageList.click();
           await setDelay(1000);
-          await page.waitForSelector('c-wiz', { timeout: 1000 });
+          await page.waitForSelector('c-wiz');
 
           const imagesUrl = await page
             .$$eval('[jscontroller="U0Base"]', (els: Element[]) => {
@@ -177,7 +180,6 @@ export class GoogleService {
         }
         const buttonNextPageEl = await page.$('table tbody tr td #pnnext');
         if (buttonNextPageEl) {
-          pageNumber++;
           await buttonNextPageEl.click();
           await page.waitForNavigation();
         } else {
@@ -187,7 +189,7 @@ export class GoogleService {
     } catch (e) {
       throw new UnprocessableEntityException(e?.message);
     } finally {
-      //await browser.close();
+      await browser.close();
     }
   }
 
