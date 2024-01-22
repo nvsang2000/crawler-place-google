@@ -106,26 +106,30 @@ export class GoogleService {
           const imageList = await page
             .waitForSelector('[jsmodel="fadmnd"]')
             .catch(() => undefined);
-          await imageList.click();
-          await setDelay(1000);
-          await page.waitForSelector('c-wiz');
 
-          const imagesUrl = await page
-            .$$eval('[jscontroller="U0Base"]', (els: Element[]) => {
-              return els.map((el: Element) => {
-                const link = el.querySelector('img').src;
-                const coverLink = link?.split('=')[0];
-                return coverLink;
-              });
-            })
-            .catch(() => undefined);
-          console.log('imagesUrl', imagesUrl);
+          let imagesUrl = [];
+          if (imageList) {
+            await imageList.click();
+            await setDelay(1000);
+            await page.waitForSelector('c-wiz');
 
-          const closeImageList = await page.waitForSelector(
-            'button[data-mdc-dialog-action="close"]',
-          );
-          await closeImageList.click();
-          await setDelay(1000);
+            imagesUrl = await page
+              .$$eval('[jscontroller="U0Base"]', (els: Element[]) => {
+                return els.map((el: Element) => {
+                  const link = el.querySelector('img').src;
+                  const coverLink = link?.split('=')[0];
+                  return coverLink;
+                });
+              })
+              .catch(() => undefined);
+            const closeImageList = await page.waitForSelector(
+              'button[data-mdc-dialog-action="close"]',
+            );
+
+            await closeImageList.click();
+            await setDelay(1000);
+          }
+
           const address = await page
             .evaluate(
               (el: Element) =>
