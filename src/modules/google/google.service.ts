@@ -20,17 +20,15 @@ import {
   promisesSequentially,
   setDelay,
 } from 'src/helper';
-import { ConfigService } from '@nestjs/config';
-import { BrowserService } from './browser.service';
 import { PlacesService } from 'src/modules/places/places.service';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import { BrowserService } from 'src/browser.service';
 @Injectable()
 export class GoogleService {
   private googleUrl: string;
   private googleMapUrl: string;
   constructor(
-    private config: ConfigService,
     private browser: BrowserService,
     private placeService: PlacesService,
   ) {}

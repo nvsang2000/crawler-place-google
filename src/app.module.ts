@@ -1,11 +1,14 @@
+import { GoogleModule } from './modules/google/google.module';
+import { TiktokModule } from './modules/tiktok/tiktok.module';
 import { PlacesModule } from './modules/places/places.module';
 import { PrismaModule } from 'nestjs-prisma';
-import { CrawlerModule } from './modules/crawler/crawler.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    GoogleModule,
+    TiktokModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -17,7 +20,6 @@ import { ConfigModule } from '@nestjs/config';
       },
     }),
     PlacesModule,
-    CrawlerModule,
   ],
   exports: [AppModule],
 })
