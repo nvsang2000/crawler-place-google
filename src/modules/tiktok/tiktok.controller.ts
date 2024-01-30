@@ -12,6 +12,6 @@ export class TiktokController {
   constructor(private tiktokService: TiktokService) {}
   @Get()
   getLogin() {
-    console.log('hello tiktok');
+    return this.tiktokService.manyBrowser();
   }
 }
