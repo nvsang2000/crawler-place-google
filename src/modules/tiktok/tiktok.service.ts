@@ -16,14 +16,19 @@ export class TiktokService {
   async login() {
     const accountList = [
       { username: 'joinnguyen477@gmail.com', password: 'Nguyen1234@' },
-      { username: 'hoavannam2378@gmail.com', password: 'Sa1234567890@' },
+      // { username: 'hoavannam2378@gmail.com', password: 'Sa1234567890@' },
     ];
 
     const pathToExtension = path.join(process.cwd(), './extensions/TOUCH_VPN');
     const promisesAcount = accountList?.map((i) => {
       return async () => {
         const browser = await puppeteer.use(StealthPlugin()).launch({
+          executablePath:
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
           headless: false,
+          ignoreDefaultArgs: ['--enable-automation'],
+          defaultViewport: null,
+          ignoreHTTPSErrors: true,
           args: [
             `--disable-extensions-except=${pathToExtension}`,
             `--load-extension=${pathToExtension}`,
@@ -39,8 +44,19 @@ export class TiktokService {
           OPTION_GO_TO_PAGE,
         );
         // await this.processCreateAccount(page);
-        await page.waitForSelector('#loginContainer');
+        await page.waitForSelector('#loginContainer').catch(() => undefined);
         await setDelay(1000);
+
+        const targets = await browser.targets();
+
+        console.log('Các trang đang mở trong trình duyệt Chrome:');
+
+        targets.map(async (item, index) => {
+          console.log(`${index + 1}`, item, item.url(), item.type());
+          if (item.type() === 'browser') {
+            console.log('newpage');
+          }
+        });
 
         await page.$$eval('[data-e2e="channel-item"]', (els) => {
           return els?.map((el: any) => {
